@@ -18,7 +18,7 @@ terraform {
 
 provider "aws" {
   region = "eu-west-2"
-  profile = "lina-terraform"
+#  profile = "lina-terraform"
 }
 
 data "aws_ami" "ubuntu" {
