@@ -11,6 +11,10 @@ jobs:
     name: Terraform Plan
     runs-on: ubuntu-latest
 
+    env:
+       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}   
+
     steps:
       # 1. Get your code from GitHub
       - name: Checkout repository
