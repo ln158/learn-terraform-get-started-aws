@@ -5,7 +5,7 @@ terraform {
     bucket  = "lina-terraform-state-london-2026" # The bucket you just made
     key     = "lina/terraform.tfstate"           # The name of the state file
     region  = "eu-west-2"                        # London
-    profile = "lina-terraform"
+#    profile = "lina-terraform"
   }
 
   required_providers {
