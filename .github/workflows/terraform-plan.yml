@@ -30,11 +30,11 @@ jobs:
 
       # 4. Check formatting (optional but good practice)
       #- name: Terraform Format
-<<<<<<< HEAD
-      #  run: terraform fmt -check
-=======
-       # run: terraform fmt -check
->>>>>>> 3758e143ed395803470a231f55624dbe7b6adfc1
+#<<<<<<< HEAD
+#      #  run: terraform fmt -check
+#=======
+#       # run: terraform fmt -check
+#>>>>>>> 3758e143ed395803470a231f55624dbe7b6adfc1
 
       # 5. Validate config
       - name: Terraform Validate
