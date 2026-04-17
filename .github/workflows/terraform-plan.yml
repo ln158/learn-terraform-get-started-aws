@@ -1,0 +1,37 @@
+
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Get your code from GitHub
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # 3. Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # 4. Check formatting (optional but good practice)
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      # 5. Validate config
+      - name: Terraform Validate
+        run: terraform validate
+
+      # 6. Show execution plan (THIS is the key step)
+      - name: Terraform Plan
+        run: terraform plan
