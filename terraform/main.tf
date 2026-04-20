@@ -93,3 +93,54 @@ output "ecr_repository_url" {
   description = "The URL of the ECR repository"
 }
 
+resource "aws_elastic_beanstalk_application" "lina_app" {
+  name        = "lina-task-listing-app"
+  description = "Task listing app"
+}
+
+resource "aws_elastic_beanstalk_environment" "lina_app_environment" {
+  name                = "lina-task-listing-app-env"
+  application         = aws_elastic_beanstalk_application.lina_app.name
+  solution_stack_name = "64bit Amazon Linux 2023 v4.0.1 running Docker"
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    # This assumes you have an IAM profile resource named 'example'
+    value     = "aws-elasticbeanstalk-ec2-role" 
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "EC2KeyName"
+    # Use the key you just confirmed in your terminal!
+    value     = "my-key-pair" 
+  }
+}
+
+# 1. Create a bucket to hold your deployment files
+resource "aws_s3_bucket" "deploy_bucket" {
+  bucket = "lina-task-app-deploy-bucket"
+  force_destroy = true 
+}
+
+# 2. Upload the Dockerrun file to the bucket
+resource "aws_s3_object" "deploy_file" {
+  bucket = aws_s3_bucket.deploy_bucket.id
+  key    = "Dockerrun.aws.json"
+  source = "Dockerrun.aws.json"
+}
+
+# 3. Create the App Version (The "Release")
+resource "aws_elastic_beanstalk_application_version" "v1" {
+  name        = "v1"
+  application = aws_elastic_beanstalk_application.lina_app.name
+  description = "My first task app version"
+  bucket      = aws_s3_bucket.deploy_bucket.id
+  key         = aws_s3_object.deploy_file.id
+}
+
+# 4. Tell the environment to actually USE this version
+# Note: You need to update your existing aws_elastic_beanstalk_environment resource 
+# by adding this line inside it:
+# version_label = aws_elastic_beanstalk_application_version.v1.name
