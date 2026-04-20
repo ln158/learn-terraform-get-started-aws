@@ -71,3 +71,25 @@ resource "aws_instance" "terraform_test_server" {
   }
 }
 
+# --- ECR Repository for Task App ---
+resource "aws_ecr_repository" "task_app_repo" {
+  name                 = "lina-task-app-repo" # The name of your "Storage Folder" in ECR
+  image_tag_mutability = "MUTABLE"            # Allows you to push updates to the same tag (like 'latest')
+
+  image_scanning_configuration {
+    scan_on_push = true # Automatically checks your code for security vulnerabilities when you push
+  }
+
+  tags = {
+    Name  = "lina-task-app-repo"
+    owner = "lina"
+  }
+}
+
+# --- Output the URL ---
+# This helps you know where to push your images later
+output "ecr_repository_url" {
+  value       = aws_ecr_repository.task_app_repo.repository_url
+  description = "The URL of the ECR repository"
+}
+
