@@ -144,3 +144,15 @@ resource "aws_elastic_beanstalk_application_version" "v1" {
 # Note: You need to update your existing aws_elastic_beanstalk_environment resource 
 # by adding this line inside it:
 # version_label = aws_elastic_beanstalk_application_version.v1.name
+resource "aws_elastic_beanstalk_environment" "lina_app_environment" {
+  name                = "lina-task-listing-app-env"
+  application         = aws_elastic_beanstalk_application.lina_app.name
+  solution_stack_name = "64bit Amazon Linux 2023 v4.0.1 running Docker"
+  
+  # ADD THIS LINE:
+  version_label       = aws_elastic_beanstalk_application_version.v1.name
+
+  setting {
+    # ... keep your existing settings here ...
+  }
+}
