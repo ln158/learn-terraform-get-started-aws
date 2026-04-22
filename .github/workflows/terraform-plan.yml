@@ -11,30 +11,27 @@ jobs:
     name: Terraform Plan
     runs-on: ubuntu-latest
 
+    # PART 1: Update the environment block to include London
     env:
        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}   
+       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       AWS_REGION: 'eu-west-2' # This tells Terraform where to find your S3 backend
 
     steps:
-      # 1. Get your code from GitHub
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Updated to v4 for better performance
 
-      # 2. Install Terraform
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3 # Updated to v3 to fix STDOUT issues
 
-      # 3. Initialize Terraform
+      # PART 2: The "Bridge" step you must have before Validate
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -input=false
+        # This downloads the AWS provider so 'validate' doesn't crash
 
-      # 4. Check formatting (optional but good practice)
-      #- name: Terraform Format
-
-      # 5. Validate config
       - name: Terraform Validate
         run: terraform validate
 
-      # 6. Show execution plan (THIS is the key step)
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -input=false
+       
