@@ -3,8 +3,9 @@ name: Terraform Plan
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+  push:
+    branches: [ main ]    
 
 jobs:
   terraform:
@@ -27,11 +28,14 @@ jobs:
       # PART 2: The "Bridge" step you must have before Validate
       - name: Terraform Init
         run: terraform init -input=false
+        working-directory: ./terraform
         # This downloads the AWS provider so 'validate' doesn't crash
 
       - name: Terraform Validate
         run: terraform validate
+        working-directory: ./terraform
 
       - name: Terraform Plan
         run: terraform plan -input=false
+        working-directory: ./terraform
        
