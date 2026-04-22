@@ -76,7 +76,8 @@ jobs:
             --environment-name "$EB_ENV" \
             --version-label "$GITHUB_SHA"
 
-            
+
       - name: Install dependencies
-        run: npm ci
+        #This tells the runner to go INTO the server folder first 
         working-directory: ./server  # Change this to whatever folder contains your package.json
+        run: npm ci
