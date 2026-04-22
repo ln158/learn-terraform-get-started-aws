@@ -33,12 +33,12 @@ jobs:
 
       # Install Angular dependencies
       - name: Install Angular dependencies
-        working-directory: ./server
+        working-directory: task-listing-app-aws/server
         run: npm ci
 
       # Run Angular tests
       - name: Run Angular tests
-        working-directory: ./server
+        working-directory: task-listing-app-aws/server
         run: npm run test:coverage
 
       # Install Express dependencies
