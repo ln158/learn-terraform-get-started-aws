@@ -1,0 +1,56 @@
+name: CI - Build and Test
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
+
+    steps:
+      # Pull the repository code
+      - uses: actions/checkout@v2
+
+      # Install Node.js
+      - uses: actions/setup-node@v2
+
+      # Start a temporary PostgreSQL instance for tests
+      - name: Start PostgreSQL
+        uses: Harmon758/postgresql-action@v1
+        with:
+          postgresql version: '13'
+          postgresql db: ${{ env.POSTGRES_DB }}
+          postgresql user: ${{ env.POSTGRES_USER }}
+          postgresql password: ${{ env.POSTGRES_PASSWORD }}
+
+      # Install Angular dependencies
+      - name: Install Angular dependencies
+        run: npm ci
+
+      # Run Angular tests
+      - name: Run Angular tests
+        run: npm run test:coverage
+
+      # Install Express dependencies
+      - name: Install Express dependencies
+        run: npm --prefix ./server ci
+
+      # Lint backend code
+      - name: Lint backend
+        run: npm --prefix ./server run lint
+
+      # Run database migrations
+      - name: Run migrations
+        run: npm --prefix ./server run migrate
+
+      # Run backend tests
+      - name: Run backend tests
+        run: npm --prefix ./server run coverage

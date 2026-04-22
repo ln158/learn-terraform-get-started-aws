@@ -1,0 +1,77 @@
+name: CD - Deploy to Elastic Beanstalk
+
+# This workflow runs automatically AFTER the "Push Docker Image to ECR" workflow completes
+on:
+  workflow_run:
+    workflows: [ "CD - Push Docker Image to ECR" ]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      # S3 bucket where Dockerrun.aws.json will be uploaded
+      S3_DEPLOY_BUCKET: "lina-task-app-deploy-bucket"
+
+      # Elastic Beanstalk application + environment names (must match Terraform)
+      EB_APP: "lina-task-listing-app"
+      EB_ENV: "lina-task-listing-app-env"
+
+      # ECR repository name (must match Terraform)
+      ECR_REPOSITORY: "lina-task-app-repo"
+
+    steps:
+      # Pull the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Authenticate GitHub Actions → AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      # Login to ECR (needed so the script can build the correct image URL)
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # Make the Dockerrun generator script executable
+      - name: Make Dockerrun script executable
+        run: chmod +x ./aws/create_dockerrun.sh
+
+      # Generate Dockerrun.aws.json using the latest pushed image
+      - name: Generate Dockerrun.aws.json
+        working-directory: ./aws
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: ./create_dockerrun.sh
+
+      # Upload Dockerrun.aws.json to S3
+      - name: Upload Dockerrun to S3
+        run: |
+          aws s3 cp ./aws/Dockerrun.aws.json \
+            s3://$S3_DEPLOY_BUCKET/Dockerrun.aws.json
+
+      # Create a new Elastic Beanstalk application version
+      - name: Create EB application version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name "$EB_APP" \
+            --version-label "$GITHUB_SHA" \
+            --source-bundle S3Bucket="$S3_DEPLOY_BUCKET",S3Key="Dockerrun.aws.json" \
+            --no-auto-create-application
+
+      # Deploy the new version to the EB environment
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --application-name "$EB_APP" \
+            --environment-name "$EB_ENV" \
+            --version-label "$GITHUB_SHA"
